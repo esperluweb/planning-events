@@ -1,58 +1,83 @@
-# Planning Events - Extension WordPress
+=== Planning Events ===
+Contributors: esperluweb  
+Tags: events, calendar, schedule, shortcode, planning  
+Requires at least: 5.0  
+Tested up to: 6.8 
+Stable tag: 1.0.0  
+License: GPLv2 or later  
+License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Une extension WordPress pour gérer et afficher un planning d'événements avec un design moderne et réactif.
+A simple and modern event planner plugin. Add events and display them anywhere using a shortcode.
 
-## Fonctionnalités
+== Description ==
 
-- Création et gestion d'événements avec date, heure, lieu et description
-- Affichage des événements à venir dans un format de liste attrayant
-- Shortcode pour insérer le planning n'importe où sur votre site
-- Interface d'administration intuitive
-- Design responsive qui s'adapte à tous les écrans
+**Planning Events** is a lightweight plugin to manage and display a schedule of upcoming events in a clean and responsive way.
 
-## Installation
+**Features:**
 
-1. Téléchargez le dossier `planning-events` et placez-le dans le répertoire `/wp-content/plugins/` de votre installation WordPress
-2. Activez l'extension via le menu 'Extensions' dans WordPress
+- Create and manage events with date, time, location, and description
+- Display upcoming events in a styled list
+- Use a shortcode to insert the event list anywhere
+- Admin interface for easy event management
+- Fully responsive design
 
-## Utilisation
+== Installation ==
 
-### Ajouter un nouvel événement
+1. Upload the `planning-events` folder to the `/wp-content/plugins/` directory.
+2. Activate the plugin through the 'Plugins' menu in WordPress.
 
-1. Allez dans "Planning Événements" > "Ajouter un événement"
-2. Remplissez les détails de l'événement (titre, description, date, heure, lieu)
-3. Publiez l'événement
+== Usage ==
 
-### Afficher le planning
+### Add a new event
 
-Pour afficher le planning sur une page ou un article, utilisez le shortcode suivant :
+1. Go to **Planning Events** > **Add New**
+2. Fill in the event details (title, description, date, time, location)
+3. Click **Publish**
 
-```
-[planning_events]
-```
+### Display the events list
 
-#### Paramètres optionnels
+Use the `[planning_events]` shortcode in any page or post.
 
-- `limit` : Nombre d'événements à afficher (par défaut : -1 pour tous)
-- `order` : Ordre de tri (ASC pour croissant, DESC pour décroissant, par défaut : ASC)
+**Optional parameters:**
 
-Exemple :
+- `limit` – Number of events to display (default: `-1` for all)
+- `order` – Sort order (`ASC` for ascending, `DESC` for descending; default: `ASC`)
+
+Example:
+
 ```
 [planning_events limit="5" order="ASC"]
 ```
 
-## Personnalisation
+== Customization ==
 
-Vous pouvez personnaliser l'apparence du planning en ajoutant des règles CSS dans le fichier `planning-events.css` ou en utilisant le personnalisateur de thème WordPress.
+To customize the look of the event list:
 
-## Compatibilité
+- Edit the plugin’s CSS file: `planning-events.css`
+- Or override styles in your theme’s CSS or via the WordPress Customizer
 
-Testé avec WordPress 5.0 et versions ultérieures.
+== Frequently Asked Questions ==
 
-## Licence
+= Is the plugin responsive? =  
+Yes! The layout adapts to all screen sizes.
 
-GPL v2 ou ultérieure
+= Can I insert the planning on multiple pages? =  
+Yes, just use the `[planning_events]` shortcode wherever you want.
 
-## Auteur
+== Screenshots ==
 
-Votre nom ou société
+1. Admin interface to add events  
+2. Example of the event list on the front-end  
+
+== Changelog ==
+
+= 1.0.0 =  
+* Initial release
+
+== License ==
+
+This plugin is licensed under the GPLv2 or later.
+
+== Author ==
+
+Developed by [EsperluWeb](https://esperluweb.com)

@@ -70,7 +70,7 @@ class Planning_Events {
         // Ajouter le style du datepicker
         wp_enqueue_style(
             'jquery-ui-style',
-            '//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css',
+            PLANNING_EVENTS_PLUGIN_URL . 'assets/css/jquery-ui.min.css',
             array(),
             '1.12.1'
         );

@@ -7,7 +7,7 @@
  * Author: EsperluWeb
  * Author URI: https://esperlweb.com
  * Text Domain: planning-events
- * Domain Path: /languages
+ * License: GPL2
  */
 
 // Sécurité : Empêcher l'accès direct au fichier

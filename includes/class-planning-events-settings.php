@@ -35,9 +35,36 @@ class Planning_Events_Settings {
     /**
      * Initialisation des paramètres
      */
+    /**
+     * Validation des paramètres
+     */
+    public function validate_settings($input) {
+        $output = array();
+        
+        // Validation de la couleur principale
+        if (isset($input['primary_color'])) {
+            $output['primary_color'] = sanitize_hex_color($input['primary_color']);
+        }
+        
+        // Validation de la couleur de survol
+        if (isset($input['hover_color'])) {
+            $output['hover_color'] = sanitize_hex_color($input['hover_color']);
+        }
+        
+        return $output;
+    }
+
     public function settings_init() {
-        // Enregistrement des paramètres
-        register_setting('planning_events', 'planning_events_settings');
+        // Enregistrement des paramètres avec fonction de validation
+        register_setting(
+            'planning_events',
+            'planning_events_settings',
+            array(
+                'type' => 'array',
+                'sanitize_callback' => array($this, 'validate_settings'),
+                'default' => array()
+            )
+        );
 
         // Ajout d'une section
         add_settings_section(
