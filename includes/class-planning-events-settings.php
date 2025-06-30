@@ -129,7 +129,7 @@ class Planning_Events_Settings {
      * Callback de la section
      */
     public function settings_section_callback() {
-        echo '<p class="description">' . __('Personnalisez les couleurs du planning d\'événements. Les modifications seront visibles sur le front-end.', 'planning-events') . '</p>';
+        echo '<p class="description">' . esc_html__('Personnalisez les couleurs du planning d\'événements. Les modifications seront visibles sur le front-end.', 'planning-events') . '</p>';
     }
 
     /**
@@ -145,7 +145,10 @@ class Planning_Events_Settings {
             <h1><span class="dashicons dashicons-calendar-alt" style="margin-right: 10px;"></span> <?php echo esc_html(get_admin_page_title()); ?></h1>
             
             <div class="notice notice-info">
-                <p><?php _e('Personnalisez l\'apparence du planning d\'événements. Utilisez le shortcode <code>[planning_events]</code> pour afficher le planning sur vos pages.', 'planning-events'); ?></p>
+                <p><?php echo wp_kses(
+                    __('Personnalisez l\'apparence du planning d\'événements. Utilisez le shortcode <code>[planning_events]</code> pour afficher le planning sur vos pages.', 'planning-events'),
+                    array('code' => array())
+                ); ?></p>
             </div>
             
             <div class="card">
@@ -154,24 +157,24 @@ class Planning_Events_Settings {
                     // Affichage des champs
                     settings_fields('planning_events');
                     do_settings_sections('planning_events');
-                    submit_button(__('Enregistrer les modifications', 'planning-events'), 'primary', 'submit', false);
+                    submit_button(esc_html__('Enregistrer les modifications', 'planning-events'), 'primary', 'submit', false);
                     ?>
                 </form>
             </div>
             
             <div class="card" style="margin-top: 20px;">
-                <h2><?php _e('Aide', 'planning-events'); ?></h2>
-                <p><?php _e('Pour afficher le planning sur une page ou un article, utilisez le shortcode suivant :', 'planning-events'); ?></p>
+                <h2><?php echo esc_html__('Aide', 'planning-events'); ?></h2>
+                <p><?php echo esc_html__('Pour afficher le planning sur une page ou un article, utilisez le shortcode suivant :', 'planning-events'); ?></p>
                 <code>[planning_events]</code>
                 
-                <h3 style="margin-top: 20px;"><?php _e('Paramètres optionnels', 'planning-events'); ?></h3>
+                <h3 style="margin-top: 20px;"><?php echo esc_html__('Paramètres optionnels', 'planning-events'); ?></h3>
                 <ul style="list-style-type: disc; margin-left: 20px;">
-                    <li><code>limit</code>: <?php _e('Nombre d\'événements à afficher (par défaut: -1 pour tous)', 'planning-events'); ?></li>
-                    <li><code>order</code>: <?php _e('Ordre de tri (ASC ou DESC, par défaut: ASC)', 'planning-events'); ?></li>
+                    <li><code>limit</code>: <?php echo esc_html__('Nombre d\'événements à afficher (par défaut: -1 pour tous)', 'planning-events'); ?></li>
+                    <li><code>order</code>: <?php echo esc_html__('Ordre de tri (ASC ou DESC, par défaut: ASC)', 'planning-events'); ?></li>
                 </ul>
                 
                 <p style="margin-top: 20px;">
-                    <strong><?php _e('Exemple :', 'planning-events'); ?></strong><br>
+                    <strong><?php echo esc_html__('Exemple :', 'planning-events'); ?></strong><br>
                     <code>[planning_events limit="5" order="ASC"]</code>
                 </p>
             </div>

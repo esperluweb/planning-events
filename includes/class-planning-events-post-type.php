@@ -98,36 +98,36 @@ class Planning_Events_Post_Type {
         ?>
         <div class="planning-event-fields">
             <div class="event-date-time-fields">
-                <h3><?php _e('Dates et heures', 'planning-events'); ?></h3>
+                <h3><?php echo esc_html__('Dates et heures', 'planning-events'); ?></h3>
                 
                 <div class="all-day-option" style="margin-bottom: 15px;">
                     <label>
                         <input type="checkbox" id="all_day" name="all_day" value="1" <?php checked($all_day, '1'); ?>>
-                        <?php _e('Journée entière', 'planning-events'); ?>
+                        <?php echo esc_html__('Journée entière', 'planning-events'); ?>
                     </label>
                 </div>
 
                 <div class="date-time-container">
                     <div class="date-time-group">
-                        <h4><?php _e('Début', 'planning-events'); ?></h4>
+                        <h4><?php echo esc_html__('Début', 'planning-events'); ?></h4>
                         <p>
-                            <label for="start_date"><?php _e('Date de début', 'planning-events'); ?></label>
+                            <label for="start_date"><?php echo esc_html__('Date de début', 'planning-events'); ?></label>
                             <input type="date" id="start_date" name="start_date" value="<?php echo esc_attr($start_date); ?>" class="widefat">
                         </p>
                         <p class="time-field" <?php echo $all_day ? 'style="display:none;"' : ''; ?>>
-                            <label for="start_time"><?php _e('Heure de début', 'planning-events'); ?></label>
+                            <label for="start_time"><?php echo esc_html__('Heure de début', 'planning-events'); ?></label>
                             <input type="time" id="start_time" name="start_time" value="<?php echo esc_attr($start_time); ?>" class="widefat">
                         </p>
                     </div>
 
                     <div class="date-time-group">
-                        <h4><?php _e('Fin', 'planning-events'); ?></h4>
+                        <h4><?php echo esc_html__('Fin', 'planning-events'); ?></h4>
                         <p>
-                            <label for="end_date"><?php _e('Date de fin', 'planning-events'); ?></label>
+                            <label for="end_date"><?php echo esc_html__('Date de fin', 'planning-events'); ?></label>
                             <input type="date" id="end_date" name="end_date" value="<?php echo esc_attr($end_date ?: $start_date); ?>" class="widefat">
                         </p>
                         <p class="time-field" <?php echo $all_day ? 'style="display:none;"' : ''; ?>>
-                            <label for="end_time"><?php _e('Heure de fin', 'planning-events'); ?></label>
+                            <label for="end_time"><?php echo esc_html__('Heure de fin', 'planning-events'); ?></label>
                             <input type="time" id="end_time" name="end_time" value="<?php echo esc_attr($end_time ?: $start_time); ?>" class="widefat">
                         </p>
                     </div>
@@ -135,12 +135,12 @@ class Planning_Events_Post_Type {
             </div>
 
             <p>
-                <label for="event_location"><?php _e('Lieu', 'planning-events'); ?></label>
+                <label for="event_location"><?php echo esc_html__('Lieu', 'planning-events'); ?></label>
                 <input type="text" id="event_location" name="event_location" value="<?php echo esc_attr($event_location); ?>" class="widefat">
             </p>
             
             <p>
-                <label for="event_color"><?php _e('Couleur de l\'événement', 'planning-events'); ?></label>
+                <label for="event_color"><?php echo esc_html__('Couleur de l\'événement', 'planning-events'); ?></label>
                 <input type="color" id="event_color" name="event_color" value="<?php echo esc_attr($event_color); ?>">
             </p>
         </div>
@@ -164,7 +164,8 @@ class Planning_Events_Post_Type {
      */
     public function save_meta_box_data($post_id) {
         // Vérifier le nonce
-        if (!isset($_POST['planning_event_meta_box_nonce']) || !wp_verify_nonce($_POST['planning_event_meta_box_nonce'], 'planning_event_meta_box')) {
+        if (!isset($_POST['planning_event_meta_box_nonce']) || 
+            !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['planning_event_meta_box_nonce'])), 'planning_event_meta_box')) {
             return;
         }
 
@@ -174,18 +175,12 @@ class Planning_Events_Post_Type {
         }
 
         // Sauvegarder les champs
-        $fields = array(
-            'start_date' => '_start_date',
-            'start_time' => '_start_time',
-            'end_date' => '_end_date',
-            'end_time' => '_end_time',
-            'event_location' => '_event_location',
-            'event_color' => '_event_color'
-        );
-
-        foreach ($fields as $field => $meta_key) {
+        $fields = array('start_date', 'end_date', 'start_time', 'end_time', 'all_day', 'event_location', 'event_color');
+        
+        foreach ($fields as $field) {
             if (isset($_POST[$field])) {
-                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$field]));
+                $value = sanitize_text_field(wp_unslash($_POST[$field]));
+                update_post_meta($post_id, '_' . $field, $value);
             }
         }
 
