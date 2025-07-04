@@ -51,29 +51,33 @@ class Planning_Events {
     /**
      * Chargement des scripts et styles pour l'administration
      */
-    public function enqueue_admin_scripts() {
-        wp_enqueue_style(
-            'planning-events-admin',
-            PLANNING_EVENTS_PLUGIN_URL . 'assets/css/admin.css',
-            array(),
-            PLANNING_EVENTS_VERSION
-        );
+    public function enqueue_admin_scripts($hook) {
+        // Ne charger les scripts que sur les pages d'édition/création d'événements
+        $screen = get_current_screen();
+        if ($screen && $screen->post_type === 'event') {
+            wp_enqueue_style(
+                'planning-events-admin',
+                PLANNING_EVENTS_PLUGIN_URL . 'assets/css/admin.css',
+                array(),
+                PLANNING_EVENTS_VERSION
+            );
 
-        wp_enqueue_script(
-            'planning-events-admin',
-            PLANNING_EVENTS_PLUGIN_URL . 'assets/js/admin.js',
-            array('jquery', 'jquery-ui-datepicker'),
-            PLANNING_EVENTS_VERSION,
-            true
-        );
+            wp_enqueue_script(
+                'planning-events-admin',
+                PLANNING_EVENTS_PLUGIN_URL . 'assets/js/admin.js',
+                array('jquery', 'jquery-ui-datepicker'),
+                PLANNING_EVENTS_VERSION,
+                true
+            );
 
-        // Ajouter le style du datepicker
-        wp_enqueue_style(
-            'jquery-ui-style',
-            PLANNING_EVENTS_PLUGIN_URL . 'assets/css/jquery-ui.min.css',
-            array(),
-            '1.12.1'
-        );
+            // Ajouter le style du datepicker
+            wp_enqueue_style(
+                'jquery-ui-style',
+                PLANNING_EVENTS_PLUGIN_URL . 'assets/css/jquery-ui.min.css',
+                array(),
+                '1.12.1'
+            );
+        }
     }
 
     /**

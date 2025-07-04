@@ -30,25 +30,44 @@ class Planning_Events_Shortcode {
         $order = in_array(strtoupper($atts['order']), array('ASC', 'DESC')) ? strtoupper($atts['order']) : 'ASC';
         $limit = max(1, min(100, absint($atts['limit']))); // Limite entre 1 et 100
 
+        // Récoutons la requête SQL pour le débogage
+        add_filter('posts_request', function($sql) {
+            error_log('Planning Events - Requête SQL : ' . $sql);
+            return $sql;
+        });
+        
         // Récupérer d'abord les IDs des événements à venir avec mise en cache
         global $wpdb;
         $cache_key = 'planning_events_upcoming_' . md5($today . $order . $limit);
         $event_ids = wp_cache_get($cache_key, 'planning_events');
         
+        // Log pour le débogage
+        error_log('Planning Events - Aujourd\'hui : ' . $today);
+        error_log('Planning Events - Clé de cache : ' . $cache_key);
+        error_log('Planning Events - IDs en cache : ' . print_r($event_ids, true));
+        
         if (false === $event_ids) {
             // Validation de la direction de tri
             $order_direction = $order === 'ASC' ? 'ASC' : 'DESC';
             
-            // Construction sécurisée de la requête
+            // Construction sécurisée de la requête pour inclure les événements du jour même et à venir
             $query = $wpdb->prepare(
-                "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value >= %s",
+                "SELECT DISTINCT pm.post_id 
+                FROM {$wpdb->postmeta} pm
+                INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+                WHERE pm.meta_key = %s 
+                AND (
+                    DATE(pm.meta_value) >= %s
+                )
+                AND p.post_type = 'planning_event'
+                AND p.post_status = 'publish'
+                ORDER BY ",
                 '_start_date',
                 $today
             );
             
             // Ajout sécurisé de l'ordre de tri
-            $query .= " ORDER BY meta_value ";
-            $query .= $order_direction === 'ASC' ? 'ASC' : 'DESC';
+            $query .= $order_direction === 'ASC' ? 'pm.meta_value ASC' : 'pm.meta_value DESC';
             
             // Ajout de la limite
             $query .= $wpdb->prepare(" LIMIT %d", $limit);
@@ -56,13 +75,65 @@ class Planning_Events_Shortcode {
             // Exécution sécurisée de la requête
             // La requête directe est nécessaire pour des raisons de performance (tri personnalisé)
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $event_ids = $wpdb->get_col($wpdb->prepare('%s', $query));
+            error_log('Planning Events - Requête SQL modifiée : ' . $query);
+            $event_ids = $wpdb->get_col($query);
             wp_cache_set($cache_key, $event_ids, 'planning_events', HOUR_IN_SECONDS);
         }
 
-        // Si pas d'événements, retourner vide
-        if (empty($event_ids)) {
-            return '<p>' . esc_html__('Aucun événement à venir pour le moment.', 'planning-events') . '</p>';
+        // Récupérer tous les événements pour le débogage
+        $all_events = $wpdb->get_results(
+            "SELECT p.ID, p.post_title, p.post_status, 
+                    pm1.meta_value as start_date, 
+                    pm2.meta_value as end_date,
+                    pm3.meta_value as all_day
+             FROM {$wpdb->posts} p
+             LEFT JOIN {$wpdb->postmeta} pm1 ON (p.ID = pm1.post_id AND pm1.meta_key = '_start_date')
+             LEFT JOIN {$wpdb->postmeta} pm2 ON (p.ID = pm2.post_id AND pm2.meta_key = '_end_date')
+             LEFT JOIN {$wpdb->postmeta} pm3 ON (p.ID = pm3.post_id AND pm3.meta_key = '_all_day')
+             WHERE p.post_type = 'planning_event' AND p.post_status = 'publish'
+             ORDER BY pm1.meta_value ASC"
+        );
+
+        // Afficher toujours les informations de débogage pour le moment
+        $show_debug = false; // Mettre à false pour désactiver le débogage
+        if ($show_debug || empty($event_ids)) {
+            $debug_info = '<div style="background: #f8f9fa; border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 4px; font-family: monospace; font-size: 14px;">';
+            $debug_info .= '<h3 style="margin-top: 0; color: #d63638;">Debug Information</h3>';
+            $debug_info .= '<p><strong>Date du serveur :</strong> ' . date('Y-m-d H:i:s') . '</p>';
+            $debug_info .= '<p><strong>Date de comparaison :</strong> ' . $today . '</p>';
+            $debug_info .= '<p><strong>Requête exécutée :</strong> <code>' . esc_html($wpdb->last_query) . '</code></p>';
+            
+            // Afficher tous les événements trouvés
+            $debug_info .= '<h4>Événements dans la base de données :</h4>';
+            if (!empty($all_events)) {
+                $debug_info .= '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+                $debug_info .= '<tr style="background-color: #f0f0f1;">';
+                $debug_info .= '<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">ID</th>';
+                $debug_info .= '<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Titre</th>';
+                $debug_info .= '<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Statut</th>';
+                $debug_info .= '<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Date de début</th>';
+                $debug_info .= '<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Date de fin</th>';
+                $debug_info .= '<th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Journée entière</th>';
+                $debug_info .= '</tr>';
+                
+                foreach ($all_events as $event) {
+                    $debug_info .= '<tr style="border-bottom: 1px solid #ddd;">';
+                    $debug_info .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($event->ID) . '</td>';
+                    $debug_info .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($event->post_title) . '</td>';
+                    $debug_info .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($event->post_status) . '</td>';
+                    $debug_info .= '<td style="padding: 8px; border: 1px solid #ddd; color: ' . (strtotime($event->start_date) < strtotime($today) ? 'red' : 'green') . '; font-weight: bold;">' . esc_html($event->start_date) . '</td>';
+                    $debug_info .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($event->end_date) . '</td>';
+                    $debug_info .= '<td style="padding: 8px; border: 1px solid #ddd; text-align: center;">' . ($event->all_day ? 'Oui' : 'Non') . '</td>';
+                    $debug_info .= '</tr>';
+                }
+                $debug_info .= '</table>';
+            } else {
+                $debug_info .= '<p style="color: red; font-weight: bold;">Aucun événement trouvé dans la base de données.</p>';
+            }
+            
+            $debug_info .= '</div>';
+            
+            return $debug_info . '<p>' . esc_html__('Aucun événement à venir pour le moment.', 'planning-events') . '</p>';
         }
 
         // Requête principale avec les IDs déjà filtrés
@@ -213,22 +284,27 @@ class Planning_Events_Shortcode {
                 
                 // Construction sécurisée de la requête pour les événements passés
                 $query = $wpdb->prepare(
-                    "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value < %s",
+                    "SELECT DISTINCT pm.post_id 
+                    FROM {$wpdb->postmeta} pm
+                    INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+                    WHERE pm.meta_key = %s 
+                    AND DATE(pm.meta_value) < %s
+                    AND p.post_type = 'planning_event'
+                    AND p.post_status = 'publish'
+                    ORDER BY ",
                     '_start_date',
                     $today
                 );
                 
                 // Ajout sécurisé de l'ordre de tri
-                $query .= " ORDER BY meta_value ";
-                $query .= $order_direction === 'ASC' ? 'ASC' : 'DESC';
+                $query .= $order_direction === 'ASC' ? 'pm.meta_value ASC' : 'pm.meta_value DESC';
                 
                 // Ajout de la limite
                 $query .= $wpdb->prepare(" LIMIT %d", $limit);
                 
                 // Exécution sécurisée de la requête
-                // La requête directe est nécessaire pour des raisons de performance (tri personnalisé)
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-                $past_event_ids = $wpdb->get_col($wpdb->prepare('%s', $query));
+                error_log('Planning Events - Requête SQL pour les événements passés : ' . $query);
+                $past_event_ids = $wpdb->get_col($query);
                 wp_cache_set($cache_key, $past_event_ids, 'planning_events', HOUR_IN_SECONDS);
             }
 
@@ -243,6 +319,7 @@ class Planning_Events_Shortcode {
             );
 
             // Exécuter la requête pour les événements passés
+            $past_args['post__not_in'] = $event_ids;
             $past_events_query = new WP_Query($past_args);
 
             if ($past_events_query->have_posts()) :

@@ -1,4 +1,14 @@
 jQuery(document).ready(function($) {
+    // Ne s'exécuter que sur la page d'édition d'un événement
+    var isEventEditPage = window.location.href.indexOf('post.php') > -1 && 
+                         $('input#post_type').val() === 'event';
+    var isEventNewPage = window.location.href.indexOf('post-new.php') > -1 && 
+                        window.location.href.indexOf('post_type=event') > -1;
+    
+    if (!isEventEditPage && !isEventNewPage) {
+        return;
+    }
+    
     // Fonction pour basculer la visibilité des champs d'heure
     function toggleTimeFields() {
         var isAllDay = $('#all_day').is(':checked');

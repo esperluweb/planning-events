@@ -10,6 +10,8 @@ class Planning_Events_Post_Type {
         add_action('init', array($this, 'register_post_type'));
         add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
         add_action('save_post_planning_event', array($this, 'save_meta_box_data'));
+        add_action('save_post', array($this, 'save_meta_box_data_fallback'), 10, 2);
+
         
         // Ajouter les colonnes personnalisées
         // add_filter('manage_planning_event_posts_columns', array($this, 'add_event_columns'));
@@ -21,6 +23,15 @@ class Planning_Events_Post_Type {
         // Masquer le lien 'Voir' dans la liste des événements
         // add_filter('post_row_actions', array($this, 'remove_view_link'), 10, 2);
     }
+
+    public function save_meta_box_data_fallback($post_id, $post) {
+        if ($post->post_type !== 'planning_event') {
+            return;
+        }
+    
+        $this->save_meta_box_data($post_id);
+    }
+    
 
     /**
      * Enregistrement du type de contenu personnalisé
@@ -159,39 +170,51 @@ class Planning_Events_Post_Type {
         return $actions;
     }
 
-    /**
-     * Sauvegarde des données de la meta box
-     */
     public function save_meta_box_data($post_id) {
-        // Vérifier le nonce
+        // On ne fait rien si ce n'est pas le bon post type
+        if (get_post_type($post_id) !== 'planning_event') {
+            return;
+        }
+    
+        // On ne fait rien si on est en autosave
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+    
+        // Si pas dans l'admin ou via un vrai formulaire, on ne fait rien
         if (!isset($_POST['planning_event_meta_box_nonce']) || 
             !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['planning_event_meta_box_nonce'])), 'planning_event_meta_box')) {
             return;
         }
-
-        // Vérifier les permissions
+    
+        // Permissions
         if (!current_user_can('edit_post', $post_id)) {
             return;
         }
-
-        // Sauvegarder les champs
-        $fields = array('start_date', 'end_date', 'start_time', 'end_time', 'all_day', 'event_location', 'event_color');
-        
+    
+        // Vérification minimale obligatoire : champ start_date présent
+        if (empty($_POST['start_date'])) {
+            return;
+        }
+    
+        // Champs à enregistrer
+        $fields = array('start_date', 'end_date', 'start_time', 'end_time', 'event_location', 'event_color');
+    
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 $value = sanitize_text_field(wp_unslash($_POST[$field]));
                 update_post_meta($post_id, '_' . $field, $value);
             }
         }
-
-        // Gérer le cas de la journée entière
+    
+        // Gestion du all_day
         $all_day = isset($_POST['all_day']) ? '1' : '0';
         update_post_meta($post_id, '_all_day', $all_day);
-        
-        // Si c'est une journée entière, on nettoie les heures
+    
         if ($all_day === '1') {
             update_post_meta($post_id, '_start_time', '');
             update_post_meta($post_id, '_end_time', '');
         }
     }
+    
 }
