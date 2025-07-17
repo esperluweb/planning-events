@@ -5,7 +5,7 @@
  * Description: Une extension pour gérer et afficher un planning d'événements
  * Version: 1.0.0
  * Author: EsperluWeb
- * Author URI: https://esperlweb.com
+ * Author URI: https://esperluweb.com
  * Text Domain: planning-events
  * License: GPL2
  */
