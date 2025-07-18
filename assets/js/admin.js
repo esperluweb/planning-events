@@ -1,9 +1,9 @@
 jQuery(document).ready(function($) {
-    // Ne s'exécuter que sur la page d'édition d'un événement
+    // Vérifier si on est sur une page d'événement
     var isEventEditPage = window.location.href.indexOf('post.php') > -1 && 
-                         $('input#post_type').val() === 'event';
+                         $('input#post_type').val() === 'planning_event';
     var isEventNewPage = window.location.href.indexOf('post-new.php') > -1 && 
-                        window.location.href.indexOf('post_type=event') > -1;
+                        window.location.href.indexOf('post_type=planning_event') > -1;
     
     if (!isEventEditPage && !isEventNewPage) {
         return;
@@ -12,28 +12,31 @@ jQuery(document).ready(function($) {
     // Fonction pour basculer la visibilité des champs d'heure
     function toggleTimeFields() {
         var isAllDay = $('#all_day').is(':checked');
-        $('.time-field').toggle(!isAllDay);
         
-        // Si c'est une journée entière, on vide les champs d'heure
         if (isAllDay) {
+            $('.time-field').slideUp(300);
             $('#start_time, #end_time').val('');
+        } else {
+            $('.time-field').slideDown(300);
         }
     }
 
-    // Initialisation des datepickers
-    $('input[type="date"]').each(function() {
-        if (typeof $.fn.datepicker !== 'undefined') {
-            $(this).datepicker({
-                dateFormat: 'yy-mm-dd',
-                firstDay: 1,
-                dayNamesMin: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
-                monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-                monthNamesShort: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
-                onSelect: function(selectedDate) {
-                    // Si la date de fin est vide ou antérieure à la date de début
-                    if (this.id === 'start_date' && (!$('#end_date').val() || $('#end_date').val() < selectedDate)) {
-                        $('#end_date').val(selectedDate);
-                    }
+    // Améliorer l'accessibilité des champs de date
+    $('#start_date, #end_date').each(function() {
+        // Ouvrir le calendrier au clic sur le champ entier
+        $(this).on('click', function() {
+            this.focus();
+            if (this.showPicker) {
+                this.showPicker();
+            }
+        });
+        
+        // Auto-remplir la date de fin si vide
+        if (this.id === 'start_date') {
+            $(this).on('change', function() {
+                var selectedDate = $(this).val();
+                if (selectedDate && (!$('#end_date').val() || $('#end_date').val() < selectedDate)) {
+                    $('#end_date').val(selectedDate);
                 }
             });
         }

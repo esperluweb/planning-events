@@ -99,11 +99,6 @@ class Planning_Events_Post_Type {
         $end_time = get_post_meta($post->ID, '_end_time', true);
         $all_day = get_post_meta($post->ID, '_all_day', true);
         $event_location = get_post_meta($post->ID, '_event_location', true);
-        $event_color = get_post_meta($post->ID, '_event_color', true);
-        
-        if (!$event_color) {
-            $event_color = '#2c3e50'; // Couleur par défaut
-        }
 
         // Afficher les champs
         ?>
@@ -148,11 +143,6 @@ class Planning_Events_Post_Type {
             <p>
                 <label for="event_location"><?php echo esc_html__('Lieu', 'planning-events'); ?></label>
                 <input type="text" id="event_location" name="event_location" value="<?php echo esc_attr($event_location); ?>" class="widefat">
-            </p>
-            
-            <p>
-                <label for="event_color"><?php echo esc_html__('Couleur de l\'événement', 'planning-events'); ?></label>
-                <input type="color" id="event_color" name="event_color" value="<?php echo esc_attr($event_color); ?>">
             </p>
         </div>
         <?php
@@ -226,7 +216,7 @@ class Planning_Events_Post_Type {
         }
     
         // Champs à enregistrer
-        $fields = array('start_date', 'end_date', 'start_time', 'end_time', 'event_location', 'event_color');
+        $fields = array('start_date', 'end_date', 'start_time', 'end_time', 'event_location');
     
         foreach ($fields as $field) {
             if (isset($_POST[$field])) {
