@@ -192,9 +192,37 @@ class Planning_Events_Post_Type {
             return;
         }
     
-        // Vérification minimale obligatoire : champ start_date présent
+        // Vérification minimale obligatoire : champ start_date présent et valide
         if (empty($_POST['start_date'])) {
             return;
+        }
+
+        // Validation de la date de début
+        $start_date = sanitize_text_field(wp_unslash($_POST['start_date']));
+        if (!$this->is_valid_date($start_date)) {
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-error"><p>Date de début invalide. Format attendu : YYYY-MM-DD</p></div>';
+            });
+            return;
+        }
+
+        // Validation de la date de fin si présente
+        if (!empty($_POST['end_date'])) {
+            $end_date = sanitize_text_field(wp_unslash($_POST['end_date']));
+            if (!$this->is_valid_date($end_date)) {
+                add_action('admin_notices', function() {
+                    echo '<div class="notice notice-error"><p>Date de fin invalide. Format attendu : YYYY-MM-DD</p></div>';
+                });
+                return;
+            }
+            
+            // Vérification que la date de fin n'est pas antérieure à la date de début
+            if (strtotime($end_date) < strtotime($start_date)) {
+                add_action('admin_notices', function() {
+                    echo '<div class="notice notice-error"><p>La date de fin ne peut pas être antérieure à la date de début.</p></div>';
+                });
+                return;
+            }
         }
     
         // Champs à enregistrer
@@ -216,5 +244,12 @@ class Planning_Events_Post_Type {
             update_post_meta($post_id, '_end_time', '');
         }
     }
-    
+
+    /**
+     * Valide si une date est au format correct (YYYY-MM-DD)
+     */
+    private function is_valid_date($date) {
+        $d = DateTime::createFromFormat('Y-m-d', $date);
+        return $d && $d->format('Y-m-d') === $date;
+    }
 }
