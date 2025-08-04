@@ -36,10 +36,10 @@ class Planning_Events_Shortcode {
             ]
         ];
 
-        // Récupérer les événements passés
+        // Récupérer les événements passés (limités aux 10 derniers)
         $past_args = [
             'post_type' => 'planning_event',
-            'posts_per_page' => -1, // On veut tous les événements passés
+            'posts_per_page' => 10, // Limiter aux 10 derniers événements passés
             'post_status' => 'publish',
             'meta_key' => '_start_date', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
             'orderby' => 'meta_value',
@@ -61,7 +61,6 @@ class Planning_Events_Shortcode {
         ob_start();
 
         echo '<div class="planning-events-container">';
-        echo '<h2>Événements à venir</h2>';
         if (!empty($upcoming)) {
             foreach ($upcoming as $post) {
                 setup_postdata($post);
@@ -158,7 +157,17 @@ class Planning_Events_Shortcode {
                     <?php endif; ?>
                 </div>
                 <div class="event-excerpt">
-                    <?php echo wp_kses_post(get_the_excerpt($post)); ?>
+                    <?php 
+                    // Utiliser le contenu complet si disponible, sinon l'extrait
+                    $content = get_the_content(null, false, $post);
+                    if (!empty($content)) {
+                        // Appliquer les filtres WordPress pour traiter le contenu (shortcodes, liens, etc.)
+                        $content = apply_filters('the_content', $content);
+                        echo wp_kses_post($content);
+                    } else {
+                        echo wp_kses_post(get_the_excerpt($post));
+                    }
+                    ?>
                 </div>
             </div>
         </div>
