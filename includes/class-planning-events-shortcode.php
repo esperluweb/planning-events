@@ -36,27 +36,7 @@ class Planning_Events_Shortcode {
             ]
         ];
 
-        // Récupérer les événements passés (limités aux 10 derniers)
-        $past_args = [
-            'post_type' => 'planning_event',
-            'posts_per_page' => 10, // Limiter aux 10 derniers événements passés
-            'post_status' => 'publish',
-            'meta_key' => '_start_date', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-            'orderby' => 'meta_value',
-            'order' => 'DESC', // Par ordre décroissant pour les événements passés
-            'meta_type' => 'DATE',
-            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                [
-                    'key' => '_start_date',
-                    'value' => $today,
-                    'compare' => '<',
-                    'type' => 'DATE'
-                ]
-            ]
-        ];
-
         $upcoming = get_posts($upcoming_args);
-        $past = get_posts($past_args);
 
         ob_start();
 
@@ -72,31 +52,6 @@ class Planning_Events_Shortcode {
         }
         echo '</div>';
 
-        if (!empty($past)) {
-            echo '<div class="planning-events-container past-events-accordion">';
-            echo '<button class="accordion-toggle">Événements passés</button>';
-            echo '<div class="accordion-content" style="display: none;">';
-            foreach ($past as $post) {
-                setup_postdata($post);
-                echo wp_kses_post($this->render_event($post));
-            }
-            wp_reset_postdata();
-            echo '</div></div>';
-            echo '<script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const toggle = document.querySelector(".accordion-toggle");
-                const content = document.querySelector(".accordion-content");
-                toggle.addEventListener("click", function () {
-                    content.style.display = content.style.display === "none" ? "block" : "none";
-                });
-            });
-            </script>';
-        }
-
-        // Ajouter le CSS pour les accordéons si nécessaire
-        if (!empty($past)) {
-            echo '<style type="text/css">' . wp_kses($this->get_accordion_css(), array()) . '</style>';
-        }
 
         return ob_get_clean();
     }
@@ -183,45 +138,4 @@ class Planning_Events_Shortcode {
         return $d && $d->format('Y-m-d') === $date;
     }
 
-    /**
-     * Retourne le CSS pour les accordéons des événements passés
-     */
-    private function get_accordion_css() {
-        return '
-        .past-events-accordion { margin-top: 2em; width: 100%; }
-        .accordion-toggle {
-            background-color: var(--primary-color, #2c3e50);
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            cursor: pointer;
-            font-size: 1.1em;
-            width: 100%;
-            text-align: left;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-            margin: 1em 0;
-        }
-        .accordion-toggle:hover { background-color: var(--hover-color, #1a252f); }
-        .accordion-content {
-            width: 100%;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin-bottom: 2em;
-        }
-        .accordion-content .planning-event {
-            margin-bottom: 0;
-            border-radius: 0;
-            border-left: 4px solid var(--primary-color, #2c3e50);
-        }
-        .accordion-content .planning-event:not(:last-child) {
-            border-bottom: 1px solid #eee;
-        }
-        .accordion-content .planning-event:hover {
-            transform: none;
-            box-shadow: none;
-        }';
-    }
 }
